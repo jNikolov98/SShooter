@@ -1,0 +1,210 @@
+<!doctype html> 
+<html lang="en"> 
+<head> 
+	<meta charset="UTF-8" />
+	<title>first</title>
+	<script type="text/javascript" src="js/phaser.js"></script>
+    <style type="text/css">
+        body {
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+
+<script type="text/javascript">
+
+var game = new Phaser.Game(800, 600, Phaser.AUTO, '', { preload: preload, create: create, update: update });
+function preload() {
+	game.load.image('background', 'textures/starBackground.png');
+	game.load.image('myBullet', 'textures/laserred.png');
+	game.load.image('ship', 'textures/playershiporange.png');
+	game.load.image('enemy', 'textures/enemyshipgreen.png');
+    game.load.image('enemyBullet', 'textures/lasergreen.png');
+	game.load.image('myLife', 'textures/playerlife.png');
+    game.load.image('enemyLife', 'textures/enemylife.png');
+    game.load.image('button', 'textures/buttonBlue.png');
+    game.load.script('webfont', '//ajax.googleapis.com/ajax/libs/webfont/1.4.7/webfont.js');
+
+}
+var background;
+var myShip;
+var myWeapon;
+var enemyShip;
+var cursors;
+var fireButton;
+var myLifes;
+var myLifesCount = 2;
+var enemyLifes;
+var enemyLifesCount = 2;
+var gamePlay = false;
+var button;
+var style;
+var text;
+
+
+function create() {
+	background = game.add.sprite(0, 0, 'background');
+	background.scale.setTo(3.2, 2.4);
+	enemyLifes = game.add.group();
+	myLifes = game.add.group();
+	for (var i = 0; i<3; i++)
+	{
+		var enemyLife = enemyLifes.create(i*20 + 5, 5, 'enemyLife', null, true, i);
+		var myLife = myLifes.create(i*20 + 735, 580, 'myLife', null, true, i);
+	}
+
+	myShip = game.add.sprite(375, 565, 'ship');
+	//myShip.anchor.setTo(0.5, 0.5);
+
+	myWeapon = game.add.weapon(30, 'myBullet');
+	myWeapon.bulletAngleOffset = -90;
+	myWeapon.bulletKillType = Phaser.Weapon.KILL_WORLD_BOUNDS;
+	myWeapon.bulletSpeed = 40;
+	myWeapon.fireRate = 600;
+	myWeapon.trackSprite(myShip, 25, -17.5);
+
+
+	enemyShip = game.add.sprite(375, 55, 'enemy');
+
+	enemyWeapon = game.add.weapon(30, 'enemyBullet');
+	enemyWeapon.bulletAngleOffset = -90;
+	enemyWeapon.bulletKillType = Phaser.Weapon.KILL_WORLD_BOUNDS;
+	enemyWeapon.bulletSpeed = -40;
+	enemyWeapon.fireRate = 600;
+	enemyWeapon.trackSprite(enemyShip, 25, 17.5);
+
+	game.physics.arcade.enable([myShip, enemyShip]);
+	cursors = game.input.keyboard.createCursorKeys();
+	enemyCursors = game.input.keyboard.addKeys({ 'up': Phaser.KeyCode.W, 'down': Phaser.KeyCode.S, 'left': Phaser.KeyCode.A, 'right': Phaser.KeyCode.D, 'shoot': Phaser.KeyCode.K });
+	fireButton = this.input.keyboard.addKey(Phaser.KeyCode.SPACEBAR);
+	myShip.body.collideWorldBounds = true;
+	enemyShip.body.collideWorldBounds = true;
+
+    button = game.add.button(game.world.centerX - 95, 400, 'button', restartGame, this, 2, 1, 0);
+    style = { font: "35px Revalia", fill: "#031974", align: "center" };
+    text = game.add.text(button.x + 30, button.y, "New Game", style);
+
+
+}
+function update() {
+    myShip.body.velocity.x = 0;
+    myShip.body.velocity.y = 0;
+    enemyShip.body.velocity.y = 0;
+    enemyShip.body.velocity.x = 0;
+    if (gamePlay) {
+        game.physics.arcade.collide(myShip, enemyShip);
+
+        if (cursors.left.isDown) {
+            myShip.body.velocity.x = -200;
+        }
+        else if (cursors.right.isDown) {
+            myShip.body.velocity.x = 200;
+        }
+
+        if (cursors.up.isDown) {
+            myShip.body.velocity.y = -200;
+        }
+        else if (cursors.down.isDown) {
+            myShip.body.velocity.y = 200;
+        }
+
+        if (fireButton.isDown) {
+            myWeapon.fire();
+        }
+
+
+        if (enemyCursors.left.isDown) {
+            enemyShip.body.velocity.x = -200;
+        }
+        else if (enemyCursors.right.isDown) {
+            enemyShip.body.velocity.x = 200;
+        }
+
+        if (enemyCursors.up.isDown) {
+            enemyShip.body.velocity.y = -200;
+        }
+        else if (enemyCursors.down.isDown) {
+            enemyShip.body.velocity.y = 200;
+        }
+
+        if (enemyCursors.shoot.isDown) {
+            enemyWeapon.fire();
+        }
+
+        if (myShip.body.y < 300) {
+            myShip.body.y = 300;
+        }
+        if (myShip.body.y > 545) {
+            myShip.body.y = 545;
+        }
+        if (enemyShip.body.y < 20){
+          enemyShip.body.y = 20;  
+        }
+        if (enemyShip.body.y > 250){
+            enemyShip.body.y = 250;
+        }
+
+        game.physics.arcade.overlap(myWeapon.bullets, enemyShip, enemyHit, null, this);
+        game.physics.arcade.overlap(enemyWeapon.bullets, myShip, meHit, null, this);
+        game.physics.arcade.overlap(enemyWeapon.bullets, myWeapon.bullets, bulletHit, null, this);
+    }
+    if (enemyLifesCount < 0 || myLifesCount < 0)
+    {
+        gamePlay = false;
+        // add text about who won;
+        button.visible = true;
+        text.visible = true;
+    }
+}
+
+function enemyHit(ship, bullet)
+{
+	bullet.kill();
+	enemyShip.body.velocity.y = -400;
+	enemyLifes.children[enemyLifesCount].kill();
+	enemyLifesCount--;
+	if (enemyLifesCount < 0)
+	{
+		console.log("dead");
+	}
+}
+
+function meHit(ship, bullet)
+{
+	bullet.kill();
+	myShip.body.velocity.y = 400;
+	myLifes.children[myLifesCount].kill();
+	myLifesCount--;
+	if (myLifesCount < 0)
+	{
+		console.log("dead");
+	}
+}
+
+function bulletHit(enemyBullets, myBullets)
+{
+	enemyBullets.kill();
+	myBullets.kill();
+}
+
+    function restartGame()
+    {
+        gamePlay = true;
+        enemyLifesCount = 2;
+        myLifesCount = 2;
+        button.visible = false;
+        text.visible = false;
+        myLifes.callAll('revive');
+        enemyLifes.callAll('revive');
+        myShip.x = 375.25;
+        myShip.y = 562.5;
+        enemyShip.x = 400;
+        enemyShip.y = 29;
+
+
+    }
+</script>
+
+</body>
+</html>
