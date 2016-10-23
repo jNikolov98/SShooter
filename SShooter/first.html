@@ -4,6 +4,8 @@
 	<meta charset="UTF-8" />
 	<title>first</title>
 	<script type="text/javascript" src="js/phaser.js"></script>
+    <script type="text/javascript" src="js/brainLibrary.js"></script>
+    <script type="text/javascript" src="brain.js"></script>
     <style type="text/css">
         body {
             margin: 0;
@@ -42,7 +44,6 @@ var button;
 var style;
 var text;
 
-
 function create() {
 	background = game.add.sprite(0, 0, 'background');
 	background.scale.setTo(3.2, 2.4);
@@ -54,25 +55,25 @@ function create() {
 		var myLife = myLifes.create(i*20 + 735, 580, 'myLife', null, true, i);
 	}
 
-	myShip = game.add.sprite(375, 565, 'ship');
+	myShip = game.add.sprite(375, 550, 'ship');
 	//myShip.anchor.setTo(0.5, 0.5);
 
 	myWeapon = game.add.weapon(30, 'myBullet');
 	myWeapon.bulletAngleOffset = -90;
 	myWeapon.bulletKillType = Phaser.Weapon.KILL_WORLD_BOUNDS;
-	myWeapon.bulletSpeed = 40;
-	myWeapon.fireRate = 600;
-	myWeapon.trackSprite(myShip, 25, -17.5);
+	myWeapon.bulletSpeed = 700;
+	myWeapon.fireRate = 400;
+	myWeapon.trackSprite(myShip, 25, -10);
 
 
-	enemyShip = game.add.sprite(375, 55, 'enemy');
+	enemyShip = game.add.sprite(375, 20, 'enemy');
 
 	enemyWeapon = game.add.weapon(30, 'enemyBullet');
 	enemyWeapon.bulletAngleOffset = -90;
 	enemyWeapon.bulletKillType = Phaser.Weapon.KILL_WORLD_BOUNDS;
-	enemyWeapon.bulletSpeed = -40;
-	enemyWeapon.fireRate = 600;
-	enemyWeapon.trackSprite(enemyShip, 25, 17.5);
+	enemyWeapon.bulletSpeed = -700;
+	enemyWeapon.fireRate = 400;
+	enemyWeapon.trackSprite(enemyShip, 25, 40);
 
 	game.physics.arcade.enable([myShip, enemyShip]);
 	cursors = game.input.keyboard.createCursorKeys();
@@ -113,24 +114,7 @@ function update() {
             myWeapon.fire();
         }
 
-
-        if (enemyCursors.left.isDown) {
-            enemyShip.body.velocity.x = -200;
-        }
-        else if (enemyCursors.right.isDown) {
-            enemyShip.body.velocity.x = 200;
-        }
-
-        if (enemyCursors.up.isDown) {
-            enemyShip.body.velocity.y = -200;
-        }
-        else if (enemyCursors.down.isDown) {
-            enemyShip.body.velocity.y = 200;
-        }
-
-        if (enemyCursors.shoot.isDown) {
-            enemyWeapon.fire();
-        }
+        BrainAction();
 
         if (myShip.body.y < 300) {
             myShip.body.y = 300;
@@ -197,10 +181,10 @@ function bulletHit(enemyBullets, myBullets)
         text.visible = false;
         myLifes.callAll('revive');
         enemyLifes.callAll('revive');
-        myShip.x = 375.25;
-        myShip.y = 562.5;
-        enemyShip.x = 400;
-        enemyShip.y = 29;
+        myShip.x = 375;
+        myShip.y = 550;
+        enemyShip.x = 375;
+        enemyShip.y = 20;
 
 
     }
